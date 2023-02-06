@@ -25,7 +25,7 @@ function afterDOMLoaded(){
 
             const parentForm = event.target.closest(".comments-comment-texteditor");
             if (parentForm && !parentForm.classList.contains("buttons-appended")) {
-                processPostComment()
+                processPostComment(parentForm)
 
                 return
             }
@@ -33,7 +33,7 @@ function afterDOMLoaded(){
 
         // check if custom message
         if (event.target && event.target.id === "custom-message") {
-            console.log('custom message processings', event.target)
+            console.log('custom message processing', event.target)
             processCustomMessage(event.target)
         }
     });
@@ -105,13 +105,17 @@ function processButtonClicked(event, buttonType, parentForm) {
 }
 
 function emulateWriting(parentElement, text) {
+    if (!text) {
+        return
+    }
+
     let input = parentElement.querySelector(".ql-editor.ql-blank p");
     let i = 0;
     let interval = setInterval(() => {
         if (i < text.length) {
             input.innerText += text[i];
             i++;
-            for(let j = 0; j < 10; j++) {
+            for(let j = 0; j < 3; j++) {
                 if (i < text.length) {
                     input.innerText += text[i];
                     i++;
@@ -120,6 +124,30 @@ function emulateWriting(parentElement, text) {
         } else {
             clearInterval(interval);
             input.parentElement.classList.remove("ql-blank");
+        }
+    }, 10);
+}
+
+function emulateElementWriting(element, text) {
+    if (!text) {
+        return
+    }
+    text = text.trim();
+
+    console.log('emulateElementWriting', element, text)
+    let i = 0;
+    let interval = setInterval(() => {
+        if (i < text.length) {
+            element.value += text[i];
+            i++;
+            for(let j = 0; j < 10; j++) {
+                if (i < text.length) {
+                    element.value += text[i];
+                    i++;
+                }
+            }
+        } else {
+            clearInterval(interval);
         }
     }, 10);
 }
@@ -134,10 +162,10 @@ function processCustomMessage(element) {
 
     relativeElement.classList.add("buttons-appended");
 
-    let salesBtn = document.createElement("button");
-    salesBtn.classList.add("rounded-custom-button");
-    salesBtn.classList.add("first-rounded-button");
-    salesBtn.innerText = "💰 Sales";
+    // let salesBtn = document.createElement("button");
+    // salesBtn.classList.add("rounded-custom-button");
+    // salesBtn.classList.add("first-rounded-button");
+    // salesBtn.innerText = "💰 Sales";
 
     let valueBtn = document.createElement("button");
     valueBtn.classList.add("rounded-custom-button");
@@ -147,19 +175,19 @@ function processCustomMessage(element) {
     engageBtn.classList.add("rounded-custom-button");
     engageBtn.innerText = "💬 Engagement";
 
-    relativeElement.appendChild(salesBtn);
+    // relativeElement.appendChild(salesBtn);
     relativeElement.appendChild(valueBtn);
     relativeElement.appendChild(engageBtn);
 
     engageBtn.addEventListener("click", function(event) {
-        processCustomMessageBtnClick(event, "engage", element);
+        processCustomMessageBtnClick(event, "sales", element);
     })
     valueBtn.addEventListener("click", function(event) {
-        processCustomMessageBtnClick(event, "emotion", element);
+        processCustomMessageBtnClick(event, "value", element);
     })
-    salesBtn.addEventListener("click", function(event) {
-        processCustomMessageBtnClick(event, "expert", element);
-    })
+    // salesBtn.addEventListener("click", function(event) {
+    //     processCustomMessageBtnClick(event, "engagement", element);
+    // })
 }
 
 function processCustomMessageBtnClick(event, buttonType, element) {
@@ -184,11 +212,13 @@ function processCustomMessageBtnClick(event, buttonType, element) {
 
     loading = true
     processButton = event.currentTarget
+    processParent = element
 
     chrome.runtime.sendMessage({
         type: "generate-custom-message",
         buttonType: buttonType,
         element: element,
+        text: JSON.stringify(data),
         message: element.value,
         data,
     });
@@ -301,7 +331,12 @@ function parseBlock(element) {
 }
 
 function parseAbout(element) {
-    const text = convertString(element.querySelector(".display-flex").textContent.trim())
+    const aboutElement = element.querySelector(".display-flex")
+    if (aboutElement === null) {
+        return null
+    }
+
+    const text = convertString(aboutElement.textContent.trim())
     return {
         type: "about the person",
         data: text,
@@ -314,19 +349,29 @@ function parseActivity(element) {
     let activities = []
 
     for(let item of listItems) {
-        const activityBlock = item.querySelector(".feed-mini-update-contextual-description__text").textContent.trim()
-        let activityType;
-        console.log("activityBlock", activityBlock)
+        const activityBlock = item.querySelector(".feed-mini-update-contextual-description__text")
+        if (activityBlock === null) {
+            continue
+        }
 
-        if (activityBlock.includes("reposted this")) {
+        const activityBlockText = activityBlock.textContent.trim()
+        let activityType;
+        console.log("activityBlockText", activityBlockText)
+
+        if (activityBlockText.includes("reposted this")) {
             activityType = "reposted"
-        } else if (activityBlock.includes("posted this")) {
+        } else if (activityBlockText.includes("posted this")) {
             activityType = "posted"
         } else {
             continue
         }
 
-        const activityText = convertString(item.querySelector("span[dir=\"ltr\"]").textContent.trim())
+        const activitiesElement = item.querySelector("span[dir=\"ltr\"]")
+        if (activitiesElement === null) {
+            continue
+        }
+
+        const activityText = convertString(activitiesElement.textContent.trim())
 
         activities.push({
             type: activityType,
@@ -350,10 +395,28 @@ function parseFeatured(element) {
     let featuredList = []
 
     for(let item of listItems) {
-        const featuredItem = convertString(item.querySelector("span[dir=\"ltr\"]").textContent.trim())
+        if (item === null) {
+            continue
+        }
+
+        let linkText, itemText
+
+        const linkData = item.querySelector('.optional-action-target-wrapper')
+        if (linkData !== null) {
+            linkText = convertString(linkData.textContent.trim())
+        }
+
+        const textData = item.querySelector('.feed-shared-text-view')
+        if (textData !== null) {
+            itemText = convertString(textData.textContent.trim())
+        }
+
+        if ((linkText === null || linkText === '') && (itemText === null || itemText === '')) {
+            continue
+        }
 
         featuredList.push(
-            featuredItem,
+            (itemText + ' ' + linkText).trim(),
         )
     }
 
@@ -369,6 +432,7 @@ function parseExperiences(element) {
     let experiences = []
 
     for(let item of listItems) {
+        console.log("experience item", item)
         const text = convertString(item.textContent.trim())
 
         console.log("text", text)
@@ -389,6 +453,12 @@ function parseExperiences(element) {
 }
 
 function convertString(str) {
+    console.log('convertString', str)
+
+    if (str === null || str === '') {
+        return ''
+    }
+
     return str.replace(/\s\s+/g, ' ').trim();
 }
 
@@ -422,7 +492,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         case "generate-custom-message-response":
             loading = false;
             processButton.classList.remove("loading-animation");
-            console.log("generate-comment-response", request.comment);
+            console.log("generate-comment-response", request.message);
 
             document.querySelectorAll(".rounded-custom-button").forEach(function(button) {
                 button.removeAttribute("disabled");
@@ -435,7 +505,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 return
             }
 
-            emulateWriting(processParent, request.comment);
+            emulateElementWriting(processParent, request.message);
 
             break;
         default:

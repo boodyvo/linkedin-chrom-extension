@@ -73,8 +73,10 @@ async function processGenerateCustomMessageRequest(request) {
     const config = {
         text: request.text,
         message: request.message,
-        messageType: request.buttonType,
+        customMessageType: request.buttonType,
     }
+
+    console.log("config", config)
 
     const requestOptions = {
         method: 'POST',
@@ -99,7 +101,7 @@ async function processGenerateCustomMessageRequest(request) {
         response = {
             type: "generate-custom-message-response",
             parentForm: request.parentForm,
-            customMessage: results.results.customMessage,
+            message: results.results.message,
         }
     } catch (error) {
         response = {
@@ -107,6 +109,8 @@ async function processGenerateCustomMessageRequest(request) {
             error: error,
         };
     }
+
+    console.log('sending data', response)
 
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, response, function(response) {
