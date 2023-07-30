@@ -162,32 +162,30 @@ function processCustomMessage(element) {
 
     relativeElement.classList.add("buttons-appended");
 
-    // let salesBtn = document.createElement("button");
-    // salesBtn.classList.add("rounded-custom-button");
-    // salesBtn.classList.add("first-rounded-button");
-    // salesBtn.innerText = "💰 Sales";
-
-    let valueBtn = document.createElement("button");
-    valueBtn.classList.add("rounded-custom-button");
-    valueBtn.innerText = "💡 Value";
-
-    let engageBtn = document.createElement("button");
-    engageBtn.classList.add("rounded-custom-button");
-    engageBtn.innerText = "💬 Engagement";
-
-    // relativeElement.appendChild(salesBtn);
-    relativeElement.appendChild(valueBtn);
-    relativeElement.appendChild(engageBtn);
-
-    engageBtn.addEventListener("click", function(event) {
-        processCustomMessageBtnClick(event, "sales", element);
+    let professionalBtn = document.createElement("button");
+    professionalBtn.classList.add("rounded-custom-button");
+    professionalBtn.classList.add("first-rounded-button");
+    professionalBtn.innerText = "💼 Professional";
+    relativeElement.appendChild(professionalBtn);
+    professionalBtn.addEventListener("click", function(event) {
+        processCustomMessageBtnClick(event, "professional", element);
     })
-    valueBtn.addEventListener("click", function(event) {
-        processCustomMessageBtnClick(event, "value", element);
+
+    let simpleBtn = document.createElement("button");
+    simpleBtn.classList.add("rounded-custom-button");
+    simpleBtn.innerText = "👌 Simple";
+    relativeElement.appendChild(simpleBtn);
+    simpleBtn.addEventListener("click", function(event) {
+        processCustomMessageBtnClick(event, "simple", element);
     })
-    // salesBtn.addEventListener("click", function(event) {
-    //     processCustomMessageBtnClick(event, "engagement", element);
-    // })
+
+    let communityBtn = document.createElement("button");
+    communityBtn.classList.add("rounded-custom-button");
+    communityBtn.innerText = "🤝 Community";
+    communityBtn.addEventListener("click", function(event) {
+        processCustomMessageBtnClick(event, "community", element);
+    })
+    relativeElement.appendChild(communityBtn);
 }
 
 function processCustomMessageBtnClick(event, buttonType, element) {

@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "LinkedBuddy",
+  "description": "LinkedBuddy helps you to build connections on LinkedIn using AI by automating activities like comments and custom messages.",
   "version": "0.0.1",
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "host_permissions": [
     "https://*.amazonaws.com/*"
@@ -21,7 +23,8 @@
       "48": "images/icon48.png",
       "128": "images/icon128.png"
     },
-    "default_title": "LinkedBuddy"
+    "default_title": "LinkedBuddy",
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js"

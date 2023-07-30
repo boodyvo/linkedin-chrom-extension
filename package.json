@@ -1,0 +1,19 @@
+{
+  "name": "linked-buddy",
+  "version": "0.1.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "zip -r ./dist/LinkedBuddy.zip ./ -x './package.json' -x './.git/*' -x './.idea/*' -x './dist/*' -x './.gitignore'"
+  },
+  "keywords": [
+    "ai",
+    "chrome",
+    "extension",
+    "linkedin",
+    "gpt"
+  ],
+  "author": "Vladyslav Budichenko",
+  "license": "ISC"
+}

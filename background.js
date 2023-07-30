@@ -28,10 +28,12 @@ async function processGenerateCommentRequest(request) {
         commentType: request.buttonType,
     }
 
+    const apiKey = await getApiKey()
     const requestOptions = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'x-api-key': apiKey,
         },
         body: JSON.stringify(config)
     };
@@ -78,10 +80,12 @@ async function processGenerateCustomMessageRequest(request) {
 
     console.log("config", config)
 
+    const apiKey = await getApiKey()
     const requestOptions = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'x-api-key': apiKey,
         },
         body: JSON.stringify(config)
     };
@@ -117,4 +121,10 @@ async function processGenerateCustomMessageRequest(request) {
             console.log('send custom message response', response)
         });
     });
+}
+
+async function getApiKey(config) {
+    const result = await chrome.storage.local.get("apiKey");
+
+    return result.apiKey
 }
